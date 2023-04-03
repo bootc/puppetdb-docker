@@ -13,4 +13,4 @@ fi
 
 # make sure Java apps running as puppetdb can read these files
 echo "Setting ownership for $SSLDIR to puppetdb:puppetdb"
-chown -R puppetdb:puppetdb ${SSLDIR}
+chown -R puppetdb:puppetdb ${SSLDIR} || true
