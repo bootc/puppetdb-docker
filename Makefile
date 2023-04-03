@@ -63,7 +63,7 @@ build: prep
 		--build-arg pupperware_analytics_stream=$(PUPPERWARE_ANALYTICS_STREAM) \
 		--file puppetdb/Dockerfile \
 		--tag $(NAMESPACE)/puppetdb:$(VERSION) \
-		$(PWD)/..
+		$(PWD)
 ifeq ($(IS_LATEST),true)
 	@docker tag $(NAMESPACE)/puppetdb:$(VERSION) $(NAMESPACE)/puppetdb:$(LATEST_VERSION)
 endif
