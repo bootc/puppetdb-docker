@@ -1,17 +1,18 @@
-ARG UBUNTU_CODENAME=focal
+# Version of PuppetDB to install
+ARG version=7.14.0
+
+# Puppet repository suite to install from (NOT the base image)
+ARG UBUNTU_CODENAME=jammy
+
+FROM ubuntu:22.04
+
+ARG version
+ARG UBUNTU_CODENAME
+
 # NOTE: never pass as a build-arg / must match .dockerenv -- used in logback.xml
 ARG LOGDIR=/opt/puppetlabs/server/data/puppetdb/logs
 
-######################################################
-# base
-######################################################
-
-FROM ubuntu:22.04 as base
-
-ARG LOGDIR
-
-ENV PUPPERWARE_ANALYTICS_ENABLED=false \
-    PUPPETDB_POSTGRES_HOSTNAME="postgres" \
+ENV PUPPETDB_POSTGRES_HOSTNAME="postgres" \
     PUPPETDB_POSTGRES_PORT="5432" \
     PUPPETDB_POSTGRES_DATABASE="puppetdb" \
     CERTNAME=puppetdb \
@@ -31,14 +32,6 @@ ENV PUPPERWARE_ANALYTICS_ENABLED=false \
 
 # puppetdb data and generated certs
 VOLUME /opt/puppetlabs/server/data/puppetdb
-
-LABEL org.label-schema.maintainer="Puppet Release Team <release@puppet.com>" \
-      org.label-schema.vendor="Puppet" \
-      org.label-schema.url="https://github.com/puppetlabs/puppetdb" \
-      org.label-schema.license="Apache-2.0" \
-      org.label-schema.vcs-url="https://github.com/puppetlabs/puppetdb" \
-      org.label-schema.schema-version="1.0" \
-      org.label-schema.dockerfile="/Dockerfile"
 
 # NOTE: this is just documentation on defaults
 EXPOSE 8080 8081
@@ -68,48 +61,20 @@ RUN apt-get update && \
     apt-get install --no-install-recommends -y \
             ca-certificates \
             curl \
-            default-jre-headless \
+            openjdk-17-jre-headless \
             dnsutils \
             dumb-init \
             netcat \
         && \
     chmod a+rx /ssl.sh /wtfc.sh /docker-entrypoint.sh /healthcheck.sh /docker-entrypoint.d/*.sh
 
-######################################################
-# release (build from packages)
-######################################################
-
-FROM base as release
-
-ARG version
-ARG UBUNTU_CODENAME
-ARG install_path=puppetdb="$version"-1"$UBUNTU_CODENAME"
-ARG deb_uri=https://apt.puppetlabs.com/puppet7-release-$UBUNTU_CODENAME.deb
-
-######################################################
-# final image
-######################################################
-
-# hadolint ignore=DL3006
-FROM release as final
-
-ARG vcs_ref
-ARG version
-ARG build_date
-ARG install_path
-ARG deb_uri
-# used by entrypoint to submit metrics to Google Analytics;
-# published images should use "production" for this build_arg
-ARG pupperware_analytics_stream="dev"
-ARG LOGDIR
-
 # hadolint ignore=DL3020
-ADD $deb_uri /puppet.deb
+ADD https://apt.puppetlabs.com/puppet7-release-$UBUNTU_CODENAME.deb /puppet.deb
 
 RUN dpkg -i /puppet.deb && \
     rm /puppet.deb && \
     apt-get update && \
-    apt-get install --no-install-recommends -y $install_path && \
+    apt-get install --no-install-recommends -y puppetdb="$version"-1"$UBUNTU_CODENAME" && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     mkdir -p "$LOGDIR" && \
@@ -124,12 +89,5 @@ COPY puppetdb/logback.xml \
 COPY puppetdb/conf.d /etc/puppetlabs/puppetdb/conf.d/
 COPY puppetdb/puppetdb /etc/default/puppetdb
 
-ENV PUPPERWARE_ANALYTICS_STREAM="$pupperware_analytics_stream" \
-    PUPPETDB_VERSION="$version"
-
-LABEL org.label-schema.name="PuppetDB" \
-      org.label-schema.vcs-ref="$vcs_ref" \
-      org.label-schema.version="$version" \
-      org.label-schema.build-date="$build_date"
-
-COPY puppetdb/Dockerfile /
+# https://github.com/opencontainers/image-spec/blob/master/annotations.md
+LABEL org.opencontainers.image.title="PuppetDB"
