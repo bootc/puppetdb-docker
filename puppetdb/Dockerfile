@@ -1,5 +1,5 @@
 # Version of PuppetDB to install
-ARG version=7.14.0
+ARG version=7.15.0
 
 # Puppet repository suite to install from (NOT the base image)
 ARG UBUNTU_CODENAME=jammy
