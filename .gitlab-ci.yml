@@ -1,0 +1,27 @@
+---
+include:
+  - template: Workflows/Branch-Pipelines.gitlab-ci.yml
+
+stages:
+  - build
+
+kaniko:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  parallel:
+    matrix:
+      - ARCH:
+          - amd64
+          - arm64
+  script:
+    - ash ci-build/kaniko.sh
+  artifacts:
+    paths:
+      - kaniko-digest-${ARCH}.txt
+  tags:
+    - kubernetes
+    - $ARCH
+
+# vim: ts=2 sw=2 et sts=2 ft=yaml
