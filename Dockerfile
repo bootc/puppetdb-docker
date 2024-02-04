@@ -46,15 +46,13 @@ CMD ["foreground"]
 # NOTE: k8s uses livenessProbe, startupProbe, readinessProbe and ignores HEALTHCHECK
 HEALTHCHECK --start-period=5m --interval=10s --timeout=10s --retries=6 CMD ["/healthcheck.sh"]
 
-# hadolint ignore=DL3020
-ADD https://raw.githubusercontent.com/puppetlabs/pupperware/1c8d5f7fdcf2a81dfaf34f5ee34435cc50526d35/gem/lib/pupperware/compose-services/pe-postgres-custom/00-ssl.sh /ssl.sh
-# hadolint ignore=DL3020
-ADD https://raw.githubusercontent.com/puppetlabs/wtfc/6aa5eef89728cc2903490a618430cc3e59216fa8/wtfc.sh \
-    puppetdb/docker-entrypoint.sh \
-    puppetdb/healthcheck.sh \
+ADD docker-entrypoint.sh \
+    healthcheck.sh \
+    ssl.sh \
+    wtfc.sh \
     /
 
-COPY puppetdb/docker-entrypoint.d /docker-entrypoint.d
+COPY docker-entrypoint.d /docker-entrypoint.d
 
 # hadolint ignore=DL3009
 RUN apt-get update && \
@@ -83,11 +81,11 @@ RUN dpkg -i /puppet.deb && \
     rm -f /etc/puppetlabs/puppetdb/conf.d/database.ini && \
     rm -f /etc/puppetlabs/puppetdb/conf.d/config.ini
 
-COPY puppetdb/logback.xml \
-     puppetdb/request-logging.xml \
+COPY logback.xml \
+     request-logging.xml \
      /etc/puppetlabs/puppetdb/
-COPY puppetdb/conf.d /etc/puppetlabs/puppetdb/conf.d/
-COPY puppetdb/puppetdb /etc/default/puppetdb
+COPY conf.d /etc/puppetlabs/puppetdb/conf.d/
+COPY puppetdb /etc/default/puppetdb
 
 # https://github.com/opencontainers/image-spec/blob/master/annotations.md
 LABEL org.opencontainers.image.title="PuppetDB"

@@ -52,23 +52,6 @@ The directory structure follows the following conventions.  The full path is alw
 - 'ssl-key'
   `/opt/puppetlabs/server/data/puppetdb/certs/private_keys/<certname>.pem`
 
-## Analytics Data Collection
-
- The puppetdb container collects usage data. This is disabled by default. You can enable it by passing `--env PUPPERWARE_ANALYTICS_ENABLED=true`
-to your `docker run` command.
-
-### What data is collected?
-* Version of the puppetdb container.
-* Anonymized IP address is used by Google Analytics for Geolocation data, but the IP address is not collected.
-
-### Why does the puppetdb container collect data?
-
- We collect data to help us understand how the containers are used and make decisions about upcoming changes.
-
-### How can I opt out of puppetdb container data collection?
-
- This is disabled by default.
-
 
 [1]: https://github.com/puppetlabs/puppetdb/blob/master/docker/puppetdb/Dockerfile
 [2]: https://github.com/puppetlabs/puppetdb/tree/master/docker
